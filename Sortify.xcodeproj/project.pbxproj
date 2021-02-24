@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5319B5BD25CF644E00E47B48 /* SorterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5319B5BC25CF644E00E47B48 /* SorterViewController.swift */; };
+		537A5D6B25D854AC00107FDA /* savedTracksStructs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537A5D6A25D854AC00107FDA /* savedTracksStructs.swift */; };
+		537A5D6E25DB122B00107FDA /* artistStructs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537A5D6D25DB122B00107FDA /* artistStructs.swift */; };
+		537A5D7125DEF6C600107FDA /* featuresStrcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537A5D7025DEF6C600107FDA /* featuresStrcuts.swift */; };
+		537A5D7725E4567600107FDA /* GenreSelectorController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537A5D7625E4567600107FDA /* GenreSelectorController.swift */; };
+		537A5D7A25E45DDE00107FDA /* ArtistSelectorController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537A5D7925E45DDE00107FDA /* ArtistSelectorController.swift */; };
 		539B8D4B25C0B32B004C89AC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539B8D4A25C0B32B004C89AC /* AppDelegate.swift */; };
 		539B8D4D25C0B32B004C89AC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539B8D4C25C0B32B004C89AC /* SceneDelegate.swift */; };
 		539B8D4F25C0B32B004C89AC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539B8D4E25C0B32B004C89AC /* ViewController.swift */; };
@@ -15,9 +21,19 @@
 		539B8D5725C0B32B004C89AC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 539B8D5525C0B32B004C89AC /* LaunchScreen.storyboard */; };
 		539B8D6A25C0B8DC004C89AC /* SpotifyiOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 539B8D6925C0B8DC004C89AC /* SpotifyiOS.framework */; };
 		53F2471125C397EB00FA9173 /* extentions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53F2471025C397EB00FA9173 /* extentions.swift */; };
+		53F2471425C4A35B00FA9173 /* JSONStructs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53F2471325C4A35B00FA9173 /* JSONStructs.swift */; };
+		53F2471B25C62E7E00FA9173 /* Gotham-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = 53F2471A25C62E7E00FA9173 /* Gotham-Black.otf */; };
+		53F2471E25C76DB400FA9173 /* Gotham-XLight.otf in Resources */ = {isa = PBXBuildFile; fileRef = 53F2471D25C76DB400FA9173 /* Gotham-XLight.otf */; };
+		53F2472125C771AF00FA9173 /* Gotham-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = 53F2472025C771AE00FA9173 /* Gotham-Light.otf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5319B5BC25CF644E00E47B48 /* SorterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SorterViewController.swift; sourceTree = "<group>"; };
+		537A5D6A25D854AC00107FDA /* savedTracksStructs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = savedTracksStructs.swift; sourceTree = "<group>"; };
+		537A5D6D25DB122B00107FDA /* artistStructs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = artistStructs.swift; sourceTree = "<group>"; };
+		537A5D7025DEF6C600107FDA /* featuresStrcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = featuresStrcuts.swift; sourceTree = "<group>"; };
+		537A5D7625E4567600107FDA /* GenreSelectorController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenreSelectorController.swift; sourceTree = "<group>"; };
+		537A5D7925E45DDE00107FDA /* ArtistSelectorController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistSelectorController.swift; sourceTree = "<group>"; };
 		539B8D4725C0B32B004C89AC /* Sortify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sortify.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		539B8D4A25C0B32B004C89AC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		539B8D4C25C0B32B004C89AC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -29,6 +45,10 @@
 		539B8D6925C0B8DC004C89AC /* SpotifyiOS.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SpotifyiOS.framework; sourceTree = "<group>"; };
 		539B8D6B25C0BA13004C89AC /* Sortify-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Sortify-Bridging-Header.h"; sourceTree = "<group>"; };
 		53F2471025C397EB00FA9173 /* extentions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extentions.swift; sourceTree = "<group>"; };
+		53F2471325C4A35B00FA9173 /* JSONStructs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONStructs.swift; sourceTree = "<group>"; };
+		53F2471A25C62E7E00FA9173 /* Gotham-Black.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Gotham-Black.otf"; sourceTree = "<group>"; };
+		53F2471D25C76DB400FA9173 /* Gotham-XLight.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Gotham-XLight.otf"; sourceTree = "<group>"; };
+		53F2472025C771AE00FA9173 /* Gotham-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Gotham-Light.otf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,6 +63,38 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5319B5B925CF63CA00E47B48 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				53F2471A25C62E7E00FA9173 /* Gotham-Black.otf */,
+				53F2472025C771AE00FA9173 /* Gotham-Light.otf */,
+				53F2471D25C76DB400FA9173 /* Gotham-XLight.otf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		5319B5BB25CF63E800E47B48 /* View Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				5319B5BC25CF644E00E47B48 /* SorterViewController.swift */,
+				539B8D4E25C0B32B004C89AC /* ViewController.swift */,
+				537A5D7625E4567600107FDA /* GenreSelectorController.swift */,
+				537A5D7925E45DDE00107FDA /* ArtistSelectorController.swift */,
+			);
+			path = "View Controllers";
+			sourceTree = "<group>";
+		};
+		537A5D6925D8548800107FDA /* JSONStructs */ = {
+			isa = PBXGroup;
+			children = (
+				53F2471325C4A35B00FA9173 /* JSONStructs.swift */,
+				537A5D6A25D854AC00107FDA /* savedTracksStructs.swift */,
+				537A5D6D25DB122B00107FDA /* artistStructs.swift */,
+				537A5D7025DEF6C600107FDA /* featuresStrcuts.swift */,
+			);
+			path = JSONStructs;
+			sourceTree = "<group>";
+		};
 		539B8D3E25C0B32A004C89AC = {
 			isa = PBXGroup;
 			children = (
@@ -63,15 +115,17 @@
 		539B8D4925C0B32B004C89AC /* Sortify */ = {
 			isa = PBXGroup;
 			children = (
+				5319B5BB25CF63E800E47B48 /* View Controllers */,
+				5319B5B925CF63CA00E47B48 /* Fonts */,
 				539B8D4A25C0B32B004C89AC /* AppDelegate.swift */,
 				539B8D4C25C0B32B004C89AC /* SceneDelegate.swift */,
-				539B8D4E25C0B32B004C89AC /* ViewController.swift */,
 				539B8D5025C0B32B004C89AC /* Main.storyboard */,
 				539B8D5325C0B32B004C89AC /* Assets.xcassets */,
 				539B8D6925C0B8DC004C89AC /* SpotifyiOS.framework */,
 				539B8D5525C0B32B004C89AC /* LaunchScreen.storyboard */,
 				539B8D5825C0B32B004C89AC /* Info.plist */,
 				53F2471025C397EB00FA9173 /* extentions.swift */,
+				537A5D6925D8548800107FDA /* JSONStructs */,
 			);
 			path = Sortify;
 			sourceTree = "<group>";
@@ -135,8 +189,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				539B8D5725C0B32B004C89AC /* LaunchScreen.storyboard in Resources */,
+				53F2471B25C62E7E00FA9173 /* Gotham-Black.otf in Resources */,
+				53F2472125C771AF00FA9173 /* Gotham-Light.otf in Resources */,
 				539B8D5425C0B32B004C89AC /* Assets.xcassets in Resources */,
 				539B8D5225C0B32B004C89AC /* Main.storyboard in Resources */,
+				53F2471E25C76DB400FA9173 /* Gotham-XLight.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -147,10 +204,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				537A5D7725E4567600107FDA /* GenreSelectorController.swift in Sources */,
 				53F2471125C397EB00FA9173 /* extentions.swift in Sources */,
 				539B8D4F25C0B32B004C89AC /* ViewController.swift in Sources */,
+				5319B5BD25CF644E00E47B48 /* SorterViewController.swift in Sources */,
 				539B8D4B25C0B32B004C89AC /* AppDelegate.swift in Sources */,
+				537A5D7A25E45DDE00107FDA /* ArtistSelectorController.swift in Sources */,
 				539B8D4D25C0B32B004C89AC /* SceneDelegate.swift in Sources */,
+				537A5D6E25DB122B00107FDA /* artistStructs.swift in Sources */,
+				53F2471425C4A35B00FA9173 /* JSONStructs.swift in Sources */,
+				537A5D6B25D854AC00107FDA /* savedTracksStructs.swift in Sources */,
+				537A5D7125DEF6C600107FDA /* featuresStrcuts.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

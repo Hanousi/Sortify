@@ -24,7 +24,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, S
 
     var window: UIWindow?
     var viewController = ViewController()
-    var accessToken: String? = nil
     
     lazy var appRemote: SPTAppRemote = {
       let appRemote = SPTAppRemote(configuration: viewController.configuration, logLevel: .debug)
@@ -37,9 +36,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, S
             return
         }
         
+        let rootVC = self.window?.rootViewController as! ViewController
+        
         let code = url.valueOf("code") ?? ""
         
-        let accessToken = getAccessToken(code: code)
+        rootVC.getAccessToken(code: code)
+
     }
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
@@ -75,48 +77,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, SPTAppRemoteDelegate, S
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
-    }
-    
-    func getAccessToken(code: String) -> String {
-        let url = URL(string: "https://sortify-domain.herokuapp.com/api/token")!
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-
-        components.queryItems = [
-            URLQueryItem(name: "code", value: code),
-            URLQueryItem(name: "redirect_uri", value: viewController.configuration.redirectURL.absoluteString),
-            URLQueryItem(name: "grant_type", value: "authorization_code")
-        ]
-        
-        let session = URLSession.shared
-        
-        let query = components.url!.query
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.httpBody = Data(query!.utf8)
-        
-        let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
-
-            guard error == nil else {
-                return
-            }
-
-            guard let data = data else {
-                return
-            }
-
-            do {
-                //create json object from data
-                if let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any] {
-                    print(json)
-                }
-            } catch let error {
-                print(error.localizedDescription)
-            }
-        })
-        task.resume()
-                
-        return ""
     }
 }
 
