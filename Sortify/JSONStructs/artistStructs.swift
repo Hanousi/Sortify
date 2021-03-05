@@ -13,7 +13,7 @@ struct ArtistsRequest: Codable {
 }
 
 // MARK: - Artist
-struct Artists: Codable {
+struct Artists: Codable, Hashable, Equatable {
     let genres: [String]
     let href: String
     let id: String
@@ -24,4 +24,14 @@ struct Artists: Codable {
     enum CodingKeys: String, CodingKey {
         case genres, href, id, name, popularity, type, uri
     }
+    
+    var hashValue: Int {
+        get {
+            return id.hashValue
+        }
+    }
+}
+
+func ==(lhs: Artists, rhs: Artists) -> Bool {
+    return lhs.id == rhs.id && lhs.name == rhs.name
 }

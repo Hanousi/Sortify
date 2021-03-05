@@ -13,3 +13,33 @@ extension URL {
         return url.queryItems?.first(where: { $0.name == queryParamaterName })?.value
     }
 }
+
+extension Set {
+    func containsOneOf(members: Array<Element>) -> Bool {
+        for member in members {
+            if self.contains(member) {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    mutating func insertAll(contentsof: Array<Element>) {
+        for item in contentsof {
+            self.insert(item)
+        }
+    }
+}
+
+extension Array where Element == Artists {
+    func getByID(id: String) -> Artists? {
+        for item in self.enumerated() {
+            if item.element.id == id {
+                return item.element
+            }
+        }
+        
+        return nil
+    }
+}

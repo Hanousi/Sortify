@@ -24,7 +24,7 @@ struct Item: Codable {
 }
 
 // MARK: - Track
-struct Track: Codable {
+struct Track: Codable, Hashable, Equatable {
     let album: Album
     let artists: [Artist]
     let availableMarkets: [String]
@@ -42,7 +42,13 @@ struct Track: Codable {
     let type: TrackType
     let uri: String
     var features: AudioFeature?
-    var genres: [String]?
+    var genres: Set<String>?
+    
+    var hashValue: Int {
+        get {
+            return id.hashValue
+        }
+    }
 
     enum CodingKeys: String, CodingKey {
         case album, artists
@@ -151,4 +157,8 @@ struct ExternalIDS: Codable {
 
 enum TrackType: String, Codable {
     case track = "track"
+}
+
+func ==(lhs: Track, rhs: Track) -> Bool {
+    return lhs.id == rhs.id && lhs.name == rhs.name
 }

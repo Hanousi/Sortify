@@ -10,12 +10,17 @@ import UIKit
 class SorterViewController: UIViewController {
 
     @IBOutlet weak var greetLabel: UILabel!
+    @IBOutlet weak var createButton: UIButton!
+    
     var user: UserDetailsRequest? = nil
     var accessToken: String? = nil
     var savedTracks: [Item] = []
     var savedArtists: [Artists] = []
+    var selectedArtists: Set<Artists> = []
     var savedGenres: [String] = []
+    var selectedGenres: Set<String> = []
     var savedFeatures: [AudioFeature] = []
+    var selectedTracks: Set<Track> = []
     
     let semaphore = DispatchSemaphore(value: 1)
 
@@ -23,18 +28,41 @@ class SorterViewController: UIViewController {
     {
         super.viewDidLoad()
         
-        greetLabel.text = "Hello " + user!.display_name + "!"
+        //Looks for single or multiple taps.
+         let tap = UITapGestureRecognizer(target: self, action: #selector(UIInputViewController.dismissKeyboard))
+
+        //Uncomment the line below if you want the tap not not interfere and cancel other interactions.
+        //tap.cancelsTouchesInView = false
+
+        view.addGestureRecognizer(tap)
         
+        greetLabel.text = "Hello " + user!.display_name + "!"
+        createButton.layer.cornerRadius = 20
+
         collectAllData()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "GenreSelector" {
             let genreSelector = segue.destination as! GenreSelectorController
+            genreSelector.selectedGenres = self.selectedGenres
+            
+            genreSelector.callback = { result in
+                self.selectedGenres = result
+                
+                self.updateSelectedSongs()
+            }
             
             genreSelector.genres = self.savedGenres.sorted()
         } else if segue.identifier == "ArtistSelector" {
             let artistSelector = segue.destination as! ArtistSelectorController
+            artistSelector.selectedArtists = self.selectedArtists
+            
+            artistSelector.callback = { result in
+                self.selectedArtists = result
+                
+                self.updateSelectedSongs()
+            }
             
             artistSelector.artists = self.savedArtists.sorted(by: { (a, b) -> Bool in
                 a.name < b.name
@@ -43,15 +71,31 @@ class SorterViewController: UIViewController {
     }
     
     func collectAllData() {
-        collectSavedTracks()
-    }
-    
-    func collectSavedTracks() {
         getTotalTracks()
     }
     
     func timeToWork() {
         print("Wasssaaaapppp")
+    }
+    
+    func updateSelectedSongs() {
+        if !self.selectedArtists.isEmpty || !self.selectedGenres.isEmpty {
+            for item in self.savedTracks {
+                if let trackGenres = item.track.genres {
+                    if trackGenres.containsOneOf(members: Array(self.selectedGenres)) {
+                        self.selectedTracks.insert(item.track)
+                        continue
+                    }
+                }
+                
+                for artist in item.track.artists {
+                    if (Array(self.selectedArtists).getByID(id: artist.id) != nil) {
+                        self.selectedTracks.insert(item.track)
+                        continue
+                    }
+                }
+            }
+        }
     }
     
     func handleArtists(mainGroup: DispatchGroup) {
@@ -64,9 +108,13 @@ class SorterViewController: UIViewController {
         self.semaphore.wait()
         
         for (index, element) in self.savedTracks.enumerated() {
-            for artist in self.savedArtists {
-                if element.track.id == artist.id {
-                    self.savedTracks[index].track.genres = artist.genres
+            for artist in element.track.artists {
+                if let thisArtist = self.savedArtists.getByID(id: artist.id) {
+                    if (self.savedTracks[index].track.genres == nil) {
+                        self.savedTracks[index].track.genres = []
+                    }
+
+                    self.savedTracks[index].track.genres!.insertAll(contentsof: thisArtist.genres)
                 }
             }
         }
@@ -356,5 +404,10 @@ class SorterViewController: UIViewController {
             }
         })
         task.resume()
+    }
+    
+    @objc func dismissKeyboard() {
+        //Causes the view (or one of its embedded text fields) to resign the first responder status.
+        view.endEditing(true)
     }
 }
