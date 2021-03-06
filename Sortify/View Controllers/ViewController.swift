@@ -58,7 +58,7 @@ class ViewController: UIViewController, SPTSessionManagerDelegate {
     }
     
     @IBAction func connectToSpotify(sender: UIButton) {
-        let requestedScopes: SPTScope = [.userReadEmail, .userReadPrivate, .userLibraryRead]
+        let requestedScopes: SPTScope = [.userReadEmail, .userReadPrivate, .userLibraryRead, .playlistModifyPublic, .playlistModifyPrivate]
         self.sessionManager.initiateSession(with: requestedScopes, options: .default)
     }
     

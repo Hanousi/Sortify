@@ -65,6 +65,16 @@ struct Track: Codable, Hashable, Equatable {
         case trackNumber = "track_number"
         case type, uri, features, genres
     }
+    
+    func stringifyArtists() -> String {
+        var artistNames: [String] = []
+        
+        for artist in self.artists {
+            artistNames.append(artist.name)
+        }
+        
+        return artistNames.joined(separator: ", ")
+    }
 }
 
 // MARK: - Album

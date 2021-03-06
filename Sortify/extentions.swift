@@ -7,6 +7,20 @@
 
 import Foundation
 
+extension UIImageView {
+    func load(url: URL) {
+        DispatchQueue.global().async { [weak self] in
+            if let data = try? Data(contentsOf: url) {
+                if let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        self?.image = image
+                    }
+                }
+            }
+        }
+    }
+}
+
 extension URL {
     func valueOf(_ queryParamaterName: String) -> String? {
         guard let url = URLComponents(string: self.absoluteString) else { return nil }
@@ -29,6 +43,18 @@ extension Set {
         for item in contentsof {
             self.insert(item)
         }
+    }
+}
+
+extension Set where Element == Track {
+    func getTrackURIs() -> [String] {
+        var uris: [String] = []
+        
+        for track in self {
+            uris.append(track.uri)
+        }
+        
+        return uris
     }
 }
 

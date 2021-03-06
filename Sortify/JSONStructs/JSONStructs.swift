@@ -15,4 +15,13 @@ struct UserDetailsRequest: Decodable {
     }
     
     let display_name: String
+    let id: String
+}
+
+struct PlaylistRequest: Decodable {
+    enum Category: String, Decodable {
+        case swift, combine, debugging, xcode
+    }
+    
+    let id: String
 }

@@ -6,11 +6,13 @@
 //
 
 import UIKit
+import SDWebImage
 
-class SorterViewController: UIViewController {
-
+class SorterViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     @IBOutlet weak var greetLabel: UILabel!
+    @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var createButton: UIButton!
+    @IBOutlet weak var playlistNameField: UITextField!
     
     var user: UserDetailsRequest? = nil
     var accessToken: String? = nil
@@ -29,16 +31,17 @@ class SorterViewController: UIViewController {
         super.viewDidLoad()
         
         //Looks for single or multiple taps.
-         let tap = UITapGestureRecognizer(target: self, action: #selector(UIInputViewController.dismissKeyboard))
-
-        //Uncomment the line below if you want the tap not not interfere and cancel other interactions.
-        //tap.cancelsTouchesInView = false
-
+        let tap = UITapGestureRecognizer(target: self, action: #selector(UIInputViewController.dismissKeyboard))
+        tap.cancelsTouchesInView = false
         view.addGestureRecognizer(tap)
         
         greetLabel.text = "Hello " + user!.display_name + "!"
         createButton.layer.cornerRadius = 20
-
+        
+        tableView.rowHeight = 90.00
+        tableView.allowsMultipleSelection = true
+        tableView.allowsMultipleSelectionDuringEditing = true
+        
         collectAllData()
     }
     
@@ -78,6 +81,11 @@ class SorterViewController: UIViewController {
         print("Wasssaaaapppp")
     }
     
+    @IBAction func createPlaylist(_ sender: Any) {
+        //MARK: Catch empty selected songs
+        createPlaylist()
+    }
+    
     func updateSelectedSongs() {
         if !self.selectedArtists.isEmpty || !self.selectedGenres.isEmpty {
             for item in self.savedTracks {
@@ -95,7 +103,11 @@ class SorterViewController: UIViewController {
                     }
                 }
             }
+        } else {
+            self.selectedTracks = []
         }
+        
+        tableView.reloadData()
     }
     
     func handleArtists(mainGroup: DispatchGroup) {
@@ -233,6 +245,32 @@ class SorterViewController: UIViewController {
         group.notify(queue: .main, execute: getArtistsAndFeatures)
     }
     
+    //MARK: Table funcs
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        print(self.selectedTracks.count)
+        
+        return self.selectedTracks.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SelectedCell", for: indexPath) as! selectedTrackCell
+        let thisTrack = Array(self.selectedTracks)[indexPath.row]
+        
+        cell.trackImage.load(url: URL(string: thisTrack.album.images[0].url)!)
+        cell.trackTitleLabel.text = thisTrack.name
+        cell.trackArtists.text = thisTrack.stringifyArtists()
+        
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        self.selectedTracks.remove(Array(self.selectedTracks)[indexPath.row])
+        print(111111)
+        
+        tableView.reloadData()
+    }
+    
+    //MARK: HTTP Calls
     func getTotalTracks() {
         print("Getting Total tracks")
         let url = URL(string: "https://api.spotify.com/v1/me/tracks")!
@@ -269,6 +307,81 @@ class SorterViewController: UIViewController {
                     self.getAllTracks(total: result.total)
                     
                     print("Total Tracks are: " + String(result.total))
+                }
+            } catch let error {
+                print(error.localizedDescription)
+            }
+        })
+        task.resume()
+    }
+    
+    func createPlaylist() {
+        let url = URL(string: "https://api.spotify.com/v1/users/" + self.user!.id + "/playlists")!
+        //MARK: Catch empty text field
+        let createPlaylistBody: [String: Any] = ["name": "Sortify: " + self.playlistNameField.text!]
+        let jsonData = try? JSONSerialization.data(withJSONObject: createPlaylistBody)
+
+        let session = URLSession.shared
+                                
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue(self.accessToken!, forHTTPHeaderField: "Authorization")
+        request.httpBody = jsonData
+        
+        let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
+
+            guard error == nil else {
+                return
+            }
+
+            guard let data = data else {
+                return
+            }
+
+            do {
+                //create json object from data
+                if (try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any]) != nil {
+                    let playlistRequest: PlaylistRequest = try! JSONDecoder().decode(PlaylistRequest.self, from: data)
+
+                    print("Playlist created")
+                    
+                    self.addSongsToNewPlaylist(id: playlistRequest.id)
+                }
+            } catch let error {
+                print(error.localizedDescription)
+            }
+        })
+        task.resume()
+    }
+    
+    func addSongsToNewPlaylist(id: String) {
+        let url = URL(string: "https://api.spotify.com/v1/playlists/" + id + "/tracks")!
+        let createPlaylistBody: [String: Any] = ["uris": self.selectedTracks.getTrackURIs()]
+        let jsonData = try? JSONSerialization.data(withJSONObject: createPlaylistBody)
+
+        let session = URLSession.shared
+                                
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue(self.accessToken!, forHTTPHeaderField: "Authorization")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonData
+        
+        let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
+
+            guard error == nil else {
+                return
+            }
+
+            guard let data = data else {
+                return
+            }
+
+            do {
+                //create json object from data
+                if (try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any]) != nil {
+                    
+                    print("Items added")
                 }
             } catch let error {
                 print(error.localizedDescription)
