@@ -25,7 +25,7 @@ class SorterViewController: UIViewController, UITableViewDataSource, UITableView
     var selectedTracks: Set<Track> = []
     
     let semaphore = DispatchSemaphore(value: 1)
-
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
@@ -42,7 +42,7 @@ class SorterViewController: UIViewController, UITableViewDataSource, UITableView
         tableView.allowsMultipleSelection = true
         tableView.allowsMultipleSelectionDuringEditing = true
         
-        collectAllData()
+        getTotalTracks()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -71,14 +71,6 @@ class SorterViewController: UIViewController, UITableViewDataSource, UITableView
                 a.name < b.name
             })
         }
-    }
-    
-    func collectAllData() {
-        getTotalTracks()
-    }
-    
-    func timeToWork() {
-        print("Wasssaaaapppp")
     }
     
     @IBAction func createPlaylist(_ sender: Any) {
@@ -110,7 +102,7 @@ class SorterViewController: UIViewController, UITableViewDataSource, UITableView
         tableView.reloadData()
     }
     
-    func handleArtists(mainGroup: DispatchGroup) {
+    func handleArtists() {
         for artist in self.savedArtists {
             self.savedGenres.append(contentsOf: artist.genres)
         }
@@ -125,7 +117,7 @@ class SorterViewController: UIViewController, UITableViewDataSource, UITableView
                     if (self.savedTracks[index].track.genres == nil) {
                         self.savedTracks[index].track.genres = []
                     }
-
+                    
                     self.savedTracks[index].track.genres!.insertAll(contentsof: thisArtist.genres)
                 }
             }
@@ -133,13 +125,11 @@ class SorterViewController: UIViewController, UITableViewDataSource, UITableView
         
         print("Genres Handled")
         self.semaphore.signal()
-        mainGroup.leave()
     }
     
-    func handleFeatures(mainGroup: DispatchGroup) {
-        
+    func handleFeatures() {
         self.semaphore.wait()
-
+        
         for (index, element) in self.savedTracks.enumerated() {
             for feature in self.savedFeatures {
                 if element.track.id == feature.id {
@@ -150,86 +140,67 @@ class SorterViewController: UIViewController, UITableViewDataSource, UITableView
         
         print("Features handled")
         self.semaphore.signal()
-        mainGroup.leave()
     }
     
-    func getArtists(mainGroup: DispatchGroup) {
-        let artistIds = Array(Set(pullArtistIds()))
+    func processChunks<T>(
+        data: [T],
+        chunkSize: Int,
+        processChunk: @escaping ([T], DispatchGroup) -> Void,
+        completion: @escaping () -> Void
+    ) {
         let group = DispatchGroup()
         
-        var lastMax = 0
-        mainGroup.enter()
+        var startIndex = 0
         
-        for x in stride(from: 50, to: artistIds.count, by: 50) {
+        while startIndex < data.count {
             group.enter()
-            let artistURIs = artistIds[(x-50)...(x-1)].joined(separator: ",")
-            lastMax = x
             
-            getArtistsWithIDs(ids: artistURIs, group: group)
+            let endIndex = min(startIndex + chunkSize, data.count)
+            let chunk = data[startIndex..<endIndex]
+            
+            processChunk(Array(chunk), group)
+            
+            startIndex = endIndex
         }
-                
-        //Stride doesnt get to the final multiple of 50. Making final call here
-        group.enter()
-        getArtistsWithIDs(ids: artistIds[lastMax...(artistIds.count - 1)].joined(separator: ","), group: group)
         
-        group.notify(queue: .main, execute: {
-            self.handleArtists(mainGroup: mainGroup)
-        })
+        group.notify(queue: .main, execute: completion)
     }
     
-    func getFeatures(mainGroup: DispatchGroup) {
-        let trackIds = Array(Set(pullTrackIds()))
-        let group = DispatchGroup()
+    func getArtists() {
+        let artistIds = self.savedTracks.flatMap { $0.track.artists }.map { $0.id }
         
-        var lastMax = 0
-        mainGroup.enter()
+        processChunks(
+            data: artistIds,
+            chunkSize: 50,
+            processChunk: { (ids: [String], group: DispatchGroup) in
+                let artistURIs = ids.joined(separator: ",")
+                self.getArtistsWithIDs(ids: artistURIs, group: group)
+            },
+            completion: {
+                self.handleArtists()
+            }
+        )
+    }
+    
+    func getFeatures() {
+        let trackIds = self.savedTracks.map { $0.track.id }
         
-        for x in stride(from: 100, to: trackIds.count, by: 100) {
-            group.enter()
-            let trackURIs = trackIds[(x-100)...(x-1)].joined(separator: ",")
-            lastMax = x
-            
-            getFeaturesWithIDs(ids: trackURIs, group: group)
-        }
-        
-        //Stride doesnt get to the final multiple of 50. Making final call here
-        group.enter()
-        getFeaturesWithIDs(ids: trackIds[lastMax...(trackIds.count - 1)].joined(separator: ","), group: group)
-        
-        group.notify(queue: .main, execute: {
-            self.handleFeatures(mainGroup: mainGroup)
-        })
+        processChunks(
+            data: trackIds,
+            chunkSize: 100,
+            processChunk: { (ids: [String], group: DispatchGroup) in
+                let trackURIs = ids.joined(separator: ",")
+                self.getFeaturesWithIDs(ids: trackURIs, group: group)
+            },
+            completion: {
+                self.handleFeatures()
+            }
+        )
     }
     
     func getArtistsAndFeatures() {
-        let group = DispatchGroup()
-        
-        getArtists(mainGroup: group)
-        getFeatures(mainGroup: group)
-        
-        group.notify(queue: .main, execute: timeToWork)
-    }
-    
-    func pullArtistIds() -> [String] {
-        var ids: [String] = []
-        
-        for item in self.savedTracks {
-            for artist in item.track.artists {
-                ids.append(artist.id)
-            }
-        }
-                
-        return ids
-    }
-    
-    func pullTrackIds() -> [String] {
-        var ids: [String] = []
-        
-        for item in self.savedTracks {
-            ids.append(item.track.id)
-        }
-                
-        return ids
+        getArtists()
+        getFeatures()
     }
     
     func getAllTracks(total: Int){
@@ -265,7 +236,6 @@ class SorterViewController: UIViewController, UITableViewDataSource, UITableView
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         self.selectedTracks.remove(Array(self.selectedTracks)[indexPath.row])
-        print(111111)
         
         tableView.reloadData()
     }
@@ -273,250 +243,117 @@ class SorterViewController: UIViewController, UITableViewDataSource, UITableView
     //MARK: HTTP Calls
     func getTotalTracks() {
         print("Getting Total tracks")
-        let url = URL(string: "https://api.spotify.com/v1/me/tracks")!
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-
-        components.queryItems = [
-            URLQueryItem(name: "limit", value: "50"),
-            URLQueryItem(name: "offset", value: "0"),
-        ]
+        let url = URL(string: "https://api.spotify.com/v1/me/tracks?limit=50&offset=0")!
         
-        let session = URLSession.shared
-        
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = "GET"
-        request.addValue(self.accessToken!, forHTTPHeaderField: "Authorization")
-        
-        let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
-
-            guard error == nil else {
-                return
-            }
-
-            guard let data = data else {
-                return
-            }
-
-            do {
-                //create json object from data
-                if (try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any]) != nil {
-                    
-                    let result = try! JSONDecoder().decode(SavedTracks.self, from: data)
-                    self.savedTracks.append(contentsOf: result.items)
-                    
-                    self.getAllTracks(total: result.total)
-                    
-                    print("Total Tracks are: " + String(result.total))
-                }
-            } catch let error {
+        NetworkManager.shared.performRequest(
+            url: url,
+            headers: ["Authorization": "Bearer \(self.accessToken!)"]
+        ) { (result: Result<SavedTracks, Error>) in
+            switch result {
+            case .success(let savedTracks):
+                self.savedTracks.append(contentsOf: savedTracks.items)
+                self.getAllTracks(total: savedTracks.total)
+                print("Total Tracks are: \(savedTracks.total)")
+            case .failure(let error):
                 print(error.localizedDescription)
             }
-        })
-        task.resume()
+        }
     }
     
     func createPlaylist() {
-        let url = URL(string: "https://api.spotify.com/v1/users/" + self.user!.id + "/playlists")!
-        //MARK: Catch empty text field
-        let createPlaylistBody: [String: Any] = ["name": "Sortify: " + self.playlistNameField.text!]
+        let url = URL(string: "https://api.spotify.com/v1/users/\(self.user!.id)/playlists")!
+        let createPlaylistBody = ["name": "Sortify: \(self.playlistNameField.text!)"]
         let jsonData = try? JSONSerialization.data(withJSONObject: createPlaylistBody)
-
-        let session = URLSession.shared
-                                
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue(self.accessToken!, forHTTPHeaderField: "Authorization")
-        request.httpBody = jsonData
         
-        let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
-
-            guard error == nil else {
-                return
-            }
-
-            guard let data = data else {
-                return
-            }
-
-            do {
-                //create json object from data
-                if (try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any]) != nil {
-                    let playlistRequest: PlaylistRequest = try! JSONDecoder().decode(PlaylistRequest.self, from: data)
-
-                    print("Playlist created")
-                    
-                    self.addSongsToNewPlaylist(id: playlistRequest.id)
-                }
-            } catch let error {
+        NetworkManager.shared.performRequest(
+            url: url,
+            httpMethod: "POST",
+            httpBody: jsonData,
+            headers: ["Authorization": "Bearer \(self.accessToken!)", "Content-Type": "application/json"]
+        ) { (result: Result<PlaylistRequest, Error>) in
+            switch result {
+            case .success(let playlistRequest):
+                print("Playlist created")
+                self.addSongsToNewPlaylist(id: playlistRequest.id)
+            case .failure(let error):
                 print(error.localizedDescription)
             }
-        })
-        task.resume()
+        }
     }
     
     func addSongsToNewPlaylist(id: String) {
-        let url = URL(string: "https://api.spotify.com/v1/playlists/" + id + "/tracks")!
-        let createPlaylistBody: [String: Any] = ["uris": self.selectedTracks.getTrackURIs()]
+        let url = URL(string: "https://api.spotify.com/v1/playlists/\(id)/tracks")!
+        let createPlaylistBody = ["uris": self.selectedTracks.getTrackURIs()]
         let jsonData = try? JSONSerialization.data(withJSONObject: createPlaylistBody)
-
-        let session = URLSession.shared
-                                
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue(self.accessToken!, forHTTPHeaderField: "Authorization")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = jsonData
         
-        let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
-
-            guard error == nil else {
-                return
-            }
-
-            guard let data = data else {
-                return
-            }
-
-            do {
-                //create json object from data
-                if (try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any]) != nil {
-                    
-                    print("Items added")
-                }
-            } catch let error {
+        NetworkManager.shared.performRequest(
+            url: url,
+            httpMethod: "POST",
+            httpBody: jsonData,
+            headers: ["Authorization": "Bearer \(self.accessToken!)", "Content-Type": "application/json"]
+        ) { (result: Result<Void, Error>) in
+            switch result {
+            case .success:
+                print("Items added")
+            case .failure(let error):
                 print(error.localizedDescription)
             }
-        })
-        task.resume()
+        }
     }
     
     func getSavedTracks(offset: Int, group: DispatchGroup) {
-        let url = URL(string: "https://api.spotify.com/v1/me/tracks")!
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-
-        components.queryItems = [
-            URLQueryItem(name: "limit", value: "50"),
-            URLQueryItem(name: "offset", value: String(offset)),
-        ]
+        let url = URL(string: "https://api.spotify.com/v1/me/tracks?limit=50&offset=\(offset)")!
         
-        let session = URLSession.shared
-                                
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = "GET"
-        request.addValue(self.accessToken!, forHTTPHeaderField: "Authorization")
-        
-        let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
-
-            guard error == nil else {
-                return
-            }
+        NetworkManager.shared.performRequest(
+            url: url,
+            headers: ["Authorization": "Bearer \(self.accessToken!)"]
+        ) { (result: Result<SavedTracks, Error>) in
+            defer { group.leave() }
             
-            defer {
-                group.leave()
-            }
-
-            guard let data = data else {
-                return
-            }
-
-            do {
-                //create json object from data
-                if (try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any]) != nil {
-                    
-                    let result = try! JSONDecoder().decode(SavedTracks.self, from: data)
-                    self.savedTracks.append(contentsOf: result.items)
-                    
-                    print("Recieved offset: " + String(offset))
-                }
-            } catch let error {
+            switch result {
+            case .success(let savedTracks):
+                self.savedTracks.append(contentsOf: savedTracks.items)
+                print("Received offset: \(offset)")
+            case .failure(let error):
                 print(error.localizedDescription)
             }
-        })
-        task.resume()
+        }
     }
     
     func getArtistsWithIDs(ids: String, group: DispatchGroup) {
-        let url = URL(string: "https://api.spotify.com/v1/artists")!
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-
-        components.queryItems = [
-            URLQueryItem(name: "ids", value: ids),
-        ]
+        let url = URL(string: "https://api.spotify.com/v1/artists?ids=\(ids)")!
         
-        let session = URLSession.shared
-                                
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = "GET"
-        request.addValue(self.accessToken!, forHTTPHeaderField: "Authorization")
-        
-        let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
-
-            guard error == nil else {
-                return
-            }
+        NetworkManager.shared.performRequest(
+            url: url,
+            headers: ["Authorization": "Bearer \(self.accessToken!)"]
+        ) { (result: Result<ArtistsRequest, Error>) in
+            defer { group.leave() }
             
-            defer {
-                group.leave()
-            }
-
-            guard let data = data else {
-                return
-            }
-
-            do {
-                //create json object from data
-                if (try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any]) != nil {
-                    
-                    let result = try! JSONDecoder().decode(ArtistsRequest.self, from: data)
-                    self.savedArtists.append(contentsOf: result.artists)
-                }
-            } catch let error {
+            switch result {
+            case .success(let artistsRequest):
+                self.savedArtists.append(contentsOf: artistsRequest.artists)
+            case .failure(let error):
                 print(error.localizedDescription)
             }
-        })
-        task.resume()
+        }
     }
     
     func getFeaturesWithIDs(ids: String, group: DispatchGroup) {
-        let url = URL(string: "https://api.spotify.com/v1/audio-features")!
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-
-        components.queryItems = [
-            URLQueryItem(name: "ids", value: ids),
-        ]
+        let url = URL(string: "https://api.spotify.com/v1/audio-features?ids=\(ids)")!
         
-        let session = URLSession.shared
-                                
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = "GET"
-        request.addValue(self.accessToken!, forHTTPHeaderField: "Authorization")
-        
-        let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
-
-            guard error == nil else {
-                return
-            }
+        NetworkManager.shared.performRequest(
+            url: url,
+            headers: ["Authorization": "Bearer \(self.accessToken!)"]
+        ) { (result: Result<FeaturesRequest, Error>) in
+            defer { group.leave() }
             
-            defer {
-                group.leave()
-            }
-
-            guard let data = data else {
-                return
-            }
-
-            do {
-                //create json object from data
-                if (try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any]) != nil {
-                    
-                    let result = try! JSONDecoder().decode(FeaturesRequest.self, from: data)
-                    self.savedFeatures.append(contentsOf: result.audioFeatures)
-                }
-            } catch let error {
+            switch result {
+            case .success(let featuresRequest):
+                self.savedFeatures.append(contentsOf: featuresRequest.audioFeatures)
+            case .failure(let error):
                 print(error.localizedDescription)
             }
-        })
-        task.resume()
+        }
     }
     
     @objc func dismissKeyboard() {
